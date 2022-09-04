@@ -2,7 +2,8 @@ package db
 
 import (
 	"database/sql"
-	"log"
+
+	"github.com/sbbullet/to-do/logger"
 )
 
 type Store struct {
@@ -12,11 +13,11 @@ type Store struct {
 func NewStore() *Store {
 	db, err := sql.Open("sqlite3", "./todo.db")
 	if err != nil {
-		log.Fatal("cannot open database. Error:", err)
+		panic(err)
 	}
 
 	if err := db.Ping(); err != nil {
-		log.Fatal("cannot find the running database. Error: ", err)
+		panic(err)
 	}
 
 	store := &Store{
@@ -24,8 +25,9 @@ func NewStore() *Store {
 	}
 
 	if err := store.migrateDatabase(); err != nil {
-		log.Fatal("cannot migrate database. Error: ", err)
+		panic(err)
 	}
+	logger.Info("Successfully migrated database")
 
 	return store
 }
@@ -50,7 +52,6 @@ func (store *Store) migrateDatabase() error {
     FOREIGN KEY (username) REFERENCES users (username) ON DELETE CASCADE
 	);
 	`
-
 	_, err := store.DB.Exec(sqlStmt)
 	return err
 }
