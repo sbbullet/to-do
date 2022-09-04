@@ -10,10 +10,10 @@ var zapLog *zap.Logger
 func InitializeLogger() {
 	var err error
 	config := zap.NewProductionConfig()
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	config.EncoderConfig.TimeKey = "timestamp"
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	zapLog, err = config.Build()
+	zapLog, err = config.Build(zap.AddCallerSkip(1))
 	if err != nil {
 		panic(err)
 	}
@@ -31,11 +31,6 @@ func Debug(message string, fields ...zap.Field) {
 
 func Error(message string, fields ...zap.Field) {
 	zapLog.Error(message, fields...)
-	zapLog.Sync()
-}
-
-func Fatal(message string, fields ...zap.Field) {
-	zapLog.Fatal(message, fields...)
 	zapLog.Sync()
 }
 
