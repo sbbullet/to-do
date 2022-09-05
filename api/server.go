@@ -49,6 +49,7 @@ func NewServer() *Server {
 
 func (server *Server) setupRouter() {
 	r := mux.NewRouter()
+	r.Use(LoggingMiddleware())
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		util.RespondWithOk(w, "Yup, it's working. Explore the API documentation")

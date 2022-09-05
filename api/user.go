@@ -36,6 +36,7 @@ func createUserResponse(user db.User) userResponse {
 	}
 }
 
+// Handler to register user
 func (s *Server) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var req registerUserRequest
 
@@ -94,6 +95,7 @@ type loginUserResponse struct {
 	User                 userResponse `json:"user"`
 }
 
+// Handler to login user
 func (s *Server) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var req loginUserRequest
 
@@ -139,4 +141,9 @@ func (s *Server) LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.RespondWithOk(w, response)
+}
+
+// Handler to get current user details
+func (s *Server) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
+
 }
