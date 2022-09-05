@@ -40,3 +40,10 @@ func RespondWithInternalServerError(w http.ResponseWriter) {
 		"error":   "Something went wrong on the server. Please, try after a while",
 	})
 }
+
+func RespondWithUauthorizedError(w http.ResponseWriter, errorMsg string) {
+	RespondWithJSON(w, http.StatusUnauthorized, map[string]interface{}{
+		"success": false,
+		"error":   errorMsg,
+	})
+}

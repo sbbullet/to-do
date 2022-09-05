@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/sbbullet/to-do/logger"
@@ -9,10 +10,12 @@ import (
 )
 
 type Config struct {
-	DBDriver   string `mapstructure:"DB_DRIVER"`
-	DBSource   string `mapstructure:"DB_SOURCE"`
-	ServerHost string `mapstructure:"SERVER_HOST"`
-	ServerPort string `mapstructure:"SERVER_PORT"`
+	DBDriver            string        `mapstructure:"DB_DRIVER"`
+	DBSource            string        `mapstructure:"DB_SOURCE"`
+	ServerHost          string        `mapstructure:"SERVER_HOST"`
+	ServerPort          string        `mapstructure:"SERVER_PORT"`
+	SymmetricKey        string        `mapstructure:"SYMMETRIC_KEY"`
+	AccessTokenDuration time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
 }
 
 func LoadConfig(fileName string, fileType string, path string) *Config {

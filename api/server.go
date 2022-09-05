@@ -9,13 +9,15 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sbbullet/to-do/db"
 	"github.com/sbbullet/to-do/logger"
+	"github.com/sbbullet/to-do/token"
 	"github.com/sbbullet/to-do/util"
 )
 
 type Server struct {
-	config *util.Config
-	store  *db.Store
-	router *mux.Router
+	config     *util.Config
+	store      *db.Store
+	router     *mux.Router
+	tokenMaker token.Maker
 }
 
 func NewServer() *Server {
@@ -28,9 +30,15 @@ func NewServer() *Server {
 	dbInstance := db.NewDB(config)
 	store := db.NewStore(dbInstance)
 
+	pasetoMaker, err := token.NewPasetoMaker(config.SymmetricKey)
+	if err != nil {
+		panic(err)
+	}
+
 	server := &Server{
-		config: config,
-		store:  store,
+		config:     config,
+		store:      store,
+		tokenMaker: pasetoMaker,
 	}
 
 	// Setup server router
@@ -48,6 +56,7 @@ func (server *Server) setupRouter() {
 
 	apiRouter := r.PathPrefix("/api/v1/").Subrouter().StrictSlash(true)
 	apiRouter.HandleFunc("/users", server.RegisterUser).Methods(http.MethodPost)
+	apiRouter.HandleFunc("/users/login", server.LoginUser).Methods(http.MethodPost)
 
 	server.router = r
 }
