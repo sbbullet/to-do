@@ -26,3 +26,17 @@ func RespondWithBadRequest(w http.ResponseWriter, errorMsg string) {
 		"error":   errorMsg,
 	})
 }
+
+func RespondWithValidationErrors(w http.ResponseWriter, validationErrors interface{}) {
+	RespondWithJSON(w, http.StatusUnprocessableEntity, map[string]interface{}{
+		"success": false,
+		"errors":  validationErrors,
+	})
+}
+
+func RespondWithInternalServerError(w http.ResponseWriter) {
+	RespondWithJSON(w, http.StatusInternalServerError, map[string]interface{}{
+		"success": false,
+		"error":   "Something went wrong on the server. Please, try after a while",
+	})
+}

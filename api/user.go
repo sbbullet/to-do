@@ -2,10 +2,10 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"strings"
 
-	"github.com/go-playground/validator/v10"
+	"github.com/sbbullet/to-do/db"
 	"github.com/sbbullet/to-do/logger"
 	"github.com/sbbullet/to-do/util"
 )
@@ -22,35 +22,36 @@ func (s *Server) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		logger.Error(err.Error())
 		util.RespondWithBadRequest(w, "Invalid request payload")
-	}
-
-	validateRequest(req)
-}
-
-func validateRequest(req interface{}) {
-	err := validate.Struct(req)
-	if err != nil {
-
-		if _, ok := err.(*validator.InvalidValidationError); ok {
-			fmt.Println(err)
-			return
-		}
-
-		for _, err := range err.(validator.ValidationErrors) {
-			fmt.Println(err.Namespace())
-			fmt.Println(err.Field())
-			fmt.Println(err.StructNamespace())
-			fmt.Println(err.StructField())
-			fmt.Println(err.Tag())
-			fmt.Println(err.ActualTag())
-			fmt.Println(err.Kind())
-			fmt.Println(err.Type())
-			fmt.Println(err.Value())
-			fmt.Println(err.Param())
-			fmt.Println(err.Error())
-		}
 		return
 	}
+
+	validationErrors := validateRequest(req)
+	if validationErrors != nil {
+		util.RespondWithValidationErrors(w, validationErrors)
+		return
+	}
+
+	arg := db.CreateUserParams{
+		Username:       req.Username,
+		Email:          req.Email,
+		FullName:       req.FullName,
+		HashedPassword: req.Password,
+	}
+	user, err := s.store.CreateUser(arg)
+	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			field := strings.Split(strings.SplitN(err.Error(), ":", 2)[1], ".")[1]
+			validationErrors := map[string][]string{
+				field: {"This " + field + " is already taken"},
+			}
+			util.RespondWithValidationErrors(w, validationErrors)
+			return
+		}
+		logger.Error(err.Error())
+		util.RespondWithInternalServerError(w)
+		return
+	}
+
+	util.RespondWithOk(w, user)
 }

@@ -1,7 +1,5 @@
 package db
 
-import "fmt"
-
 type CreateUserParams struct {
 	Username       string `json:"username"`
 	Email          string `json:"email"`
@@ -10,7 +8,11 @@ type CreateUserParams struct {
 }
 
 func (store *Store) CreateUser(arg CreateUserParams) (user User, err error) {
-	const createUserQuery = `INSERT INTO users(username, email, full_name, hashed_password) VALUES(?, ?, ?, ?) RETURNING *;`
+	const createUserQuery = `
+		INSERT INTO users(username, email, full_name, hashed_password)
+		VALUES(?, ?, ?, ?)
+		RETURNING *;
+	`
 
 	row := store.DB.QueryRow(createUserQuery,
 		arg.Username,
@@ -27,13 +29,14 @@ func (store *Store) CreateUser(arg CreateUserParams) (user User, err error) {
 		&user.CreatedAt,
 	)
 
-	fmt.Println("error is : ", err)
-
 	return
 }
 
 func (store *Store) GetUser(username string) (user User, err error) {
-	const getUserQuery = `SELECT * FROM users WHERE username = ?;`
+	const getUserQuery = `
+		SELECT * FROM users
+		WHERE username = ?;
+		`
 
 	row := store.DB.QueryRow(getUserQuery, username)
 
