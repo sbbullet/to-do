@@ -29,11 +29,15 @@ func TestGetUser(t *testing.T) {
 
 // Create a random user in the test database
 func createRandomUser(t *testing.T) User {
+	hashedPassword, err := util.HashPassword(util.RandomString(8))
+	require.NoError(t, err)
+	require.NotEmpty(t, hashedPassword)
+
 	arg := CreateUserParams{
 		Username:       util.RandomUsername(),
 		Email:          util.RandomEmail(),
 		FullName:       util.RandomString(4) + " " + util.RandomString(4),
-		HashedPassword: util.RandomString(8),
+		HashedPassword: hashedPassword,
 	}
 
 	user, err := testStore.CreateUser(arg)

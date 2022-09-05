@@ -3,12 +3,25 @@ package api
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
 
 var validate *validator.Validate
+
+var (
+	isFullName = regexp.MustCompile(`^[a-zA-Z]{2,50}(?: [a-zA-Z.'-]{2,50})+$`).MatchString
+)
+
+var fullNameValidator validator.Func = func(fl validator.FieldLevel) bool {
+	if field, ok := fl.Field().Interface().(string); ok {
+		return isFullName(field)
+	} else {
+		return false
+	}
+}
 
 func init() {
 	validate = validator.New()
@@ -21,6 +34,8 @@ func init() {
 
 		return name
 	})
+
+	validate.RegisterValidation("full_name", fullNameValidator)
 
 	// This is also other way to get the json tag from field
 	// validationErrors := err.(validator.ValidationErrors)
@@ -46,6 +61,9 @@ func msgForTag(fe validator.FieldError) string {
 
 	case "email":
 		return "The email address is invalid"
+
+	case "full_name":
+		return "Full name must have at least first name and last name each with at least 2 & at max 50 characters & seperated by space"
 
 	default:
 		return fe.Error()

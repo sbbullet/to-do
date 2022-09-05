@@ -10,9 +10,15 @@ import (
 	"github.com/sbbullet/to-do/util"
 )
 
+type userResponse struct {
+	Username string `json:"username" validate:"required,alphanum,min=2,max=12"`
+	FullName string `json:"full_name" validate:"required,full_name"`
+	Email    string `json:"email" validate:"required,email"`
+}
+
 type registerUserRequest struct {
 	Username string `json:"username" validate:"required,alphanum,min=2,max=12"`
-	FullName string `json:"full_name" validate:"required"`
+	FullName string `json:"full_name" validate:"required,full_name"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6,max=16"`
 }
@@ -32,12 +38,20 @@ func (s *Server) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hashedPassword, err := util.HashPassword(req.Password)
+	if err != nil {
+		logger.Error(err.Error())
+		util.RespondWithInternalServerError(w)
+		return
+	}
+
 	arg := db.CreateUserParams{
 		Username:       req.Username,
 		Email:          req.Email,
 		FullName:       req.FullName,
-		HashedPassword: req.Password,
+		HashedPassword: hashedPassword,
 	}
+
 	user, err := s.store.CreateUser(arg)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
@@ -54,4 +68,7 @@ func (s *Server) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.RespondWithOk(w, user)
+}
+
+type loginUserRequest struct {
 }
