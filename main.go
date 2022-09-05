@@ -6,9 +6,13 @@ import (
 )
 
 func main() {
-	logger.InitializeLogger()
-	logger.Info("Starting app")
 
+	// Initialize logger
+	logger.InitializeLogger()
+
+	// Create a new server
 	server := api.NewServer()
+
+	// Run the server
 	server.Run()
 }

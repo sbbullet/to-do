@@ -9,6 +9,8 @@ import (
 )
 
 type Config struct {
+	DBDriver   string `mapstructure:"DB_DRIVER"`
+	DBSource   string `mapstructure:"DB_SOURCE"`
 	ServerHost string `mapstructure:"SERVER_HOST"`
 	ServerPort string `mapstructure:"SERVER_PORT"`
 }
@@ -25,6 +27,8 @@ func LoadConfig(fileName string, fileType string, path string) *Config {
 
 	// Set defaults for the config variables
 	config := &Config{
+		DBDriver:   "sqlite3",
+		DBSource:   "todo.db",
 		ServerHost: "0.0.0.0",
 		ServerPort: "5000",
 	}
