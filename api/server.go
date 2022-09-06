@@ -55,9 +55,13 @@ func (server *Server) setupRouter() {
 		util.RespondWithOk(w, "Yup, it's working. Explore the API documentation")
 	})
 
-	apiRouter := r.PathPrefix("/api/v1/").Subrouter().StrictSlash(true)
-	apiRouter.HandleFunc("/users", server.RegisterUser).Methods(http.MethodPost)
-	apiRouter.HandleFunc("/users/login", server.LoginUser).Methods(http.MethodPost)
+	apiRoutes := r.PathPrefix("/api/v1/").Subrouter().StrictSlash(true)
+	apiRoutes.HandleFunc("/users", server.RegisterUser).Methods(http.MethodPost)
+	apiRoutes.HandleFunc("/users/login", server.LoginUser).Methods(http.MethodPost)
+
+	authRoutes := apiRoutes.PathPrefix("/users").Subrouter().StrictSlash(true)
+	authRoutes.Use(AuthMiddleware(server.tokenMaker))
+	authRoutes.HandleFunc("/me", server.GetCurrentUser).Methods(http.MethodGet)
 
 	server.router = r
 }

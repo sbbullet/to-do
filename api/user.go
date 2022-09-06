@@ -145,5 +145,18 @@ func (s *Server) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 // Handler to get current user details
 func (s *Server) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
+	username := r.Header.Get(authUsernameHeaderKey)
 
+	if len(username) <= 0 {
+		util.RespondWithUauthorizedError(w, "You are not authorized to perform the action")
+		return
+	}
+
+	user, err := s.store.GetUser(username)
+	if err != nil {
+		util.RespondWithUauthorizedError(w, "You are not authorized to perfomr the action")
+		return
+	}
+
+	util.RespondWithOk(w, createUserResponse(user))
 }
