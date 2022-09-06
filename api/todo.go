@@ -1,13 +1,16 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"github.com/sbbullet/to-do/db"
 	"github.com/sbbullet/to-do/logger"
 	"github.com/sbbullet/to-do/util"
@@ -42,7 +45,7 @@ func (s *Server) CreateTodo(w http.ResponseWriter, r *http.Request) {
 	username := r.Header.Get(authUsernameHeaderKey)
 
 	arg := db.CreateTodoParams{
-		ID:       todoID.String(),
+		ID:       todoID,
 		Username: username,
 		Title:    req.Title,
 	}
@@ -96,10 +99,72 @@ func (s *Server) GetUserTodos(w http.ResponseWriter, r *http.Request) {
 	util.RespondWithOk(w, createTodosResponse(todos))
 }
 
+type updateTodoRequest struct {
+	Title       string `json:"title" validation:"min=6,max=255"`
+	IsCompleted *bool  `json:"is_completed" validation:"boolean"`
+}
+
 // Update todo of the authorized user
+func (s *Server) UpdateTodo(w http.ResponseWriter, r *http.Request) {
+	var req updateTodoRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		fmt.Println(err.Error())
+		util.RespondWithBadRequest(w, "Invalid request payload")
+		return
+	}
+
+	todoID, err := uuid.Parse(mux.Vars(r)["id"])
+	if err != nil {
+		util.RespondWithBadRequest(w, "Invalid todo identifier")
+		return
+	}
+
+	validationErrors := validateRequest(req)
+	if validationErrors != nil {
+		util.RespondWithValidationErrors(w, validationErrors)
+		return
+	}
+
+	username := r.Header.Get(authUsernameHeaderKey)
+	todo, err := s.store.GetTodoById(todoID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			util.RespondWithNotFoundError(w, "Oops!! We couldn't find the associated todo")
+			return
+		}
+	}
+
+	if todo.Username != username {
+		util.RespondWithForbiddenError(w, "You are forbidden to perform the action on this resource")
+		return
+	}
+
+	var isCompleted sql.NullBool
+	if req.IsCompleted != nil {
+		isCompleted = sql.NullBool{Bool: *req.IsCompleted, Valid: true}
+	} else {
+		isCompleted = sql.NullBool{Valid: false}
+	}
+
+	updateTodoArgs := db.UpdateTodoParams{
+		ID:          todo.ID,
+		Title:       sql.NullString{String: req.Title, Valid: len(req.Title) > 0},
+		IsCompleted: isCompleted,
+	}
+	updatedTodo, err := s.store.UpdateTodo(updateTodoArgs)
+	if err != nil {
+		logger.Error(err.Error())
+		util.RespondWithInternalServerError(w)
+		return
+	}
+
+	util.RespondWithOk(w, createTodoResponse(updatedTodo))
+}
 
 type todoResponse struct {
-	ID          string    `json:"id"`
+	ID          uuid.UUID `json:"id"`
 	Title       string    `json:"title"`
 	CreatedAt   time.Time `json:"created_at"`
 	IsCompleted bool      `json:"is_completed"`

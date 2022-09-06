@@ -1,11 +1,16 @@
 package db
 
-import "fmt"
+import (
+	"database/sql"
+	"fmt"
+
+	"github.com/google/uuid"
+)
 
 type CreateTodoParams struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
-	Title    string `json:"title"`
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+	Title    string    `json:"title"`
 }
 
 func (store *Store) CreateTodo(arg CreateTodoParams) (todo Todo, err error) {
@@ -26,6 +31,20 @@ type GetUserTodosParams struct {
 	Username string
 	Limit    int
 	Offset   int
+}
+
+func (store *Store) GetTodoById(id uuid.UUID) (todo Todo, err error) {
+	const getTodoByIdQuery = `
+		SELECT id, username, title, is_completed, created_at
+		FROM todos
+		WHERE id = ?;
+	`
+
+	row := store.DB.QueryRow(getTodoByIdQuery, id)
+
+	err = row.Scan(&todo.ID, &todo.Username, &todo.Title, &todo.IsCompleted, &todo.CreatedAt)
+
+	return
 }
 
 func (store *Store) GetUserTodos(arg GetUserTodosParams) ([]Todo, error) {
@@ -66,4 +85,28 @@ func (store *Store) GetUserTodos(arg GetUserTodosParams) ([]Todo, error) {
 	}
 
 	return todos, nil
+}
+
+type UpdateTodoParams struct {
+	ID          uuid.UUID      `json:"id"`
+	Title       sql.NullString `json:"title"`
+	IsCompleted sql.NullBool   `json:"is_completed"`
+}
+
+func (store *Store) UpdateTodo(arg UpdateTodoParams) (todo Todo, err error) {
+	const updateTodoQuery = `
+		UPDATE todos
+		SET
+			title = COALESCE(?, title),
+			is_completed = COALESCE(?, is_completed)
+		WHERE
+			id = ?
+		RETURNING id, username, title, is_completed, created_at;
+	`
+
+	row := store.DB.QueryRow(updateTodoQuery, arg.Title, arg.IsCompleted, arg.ID)
+
+	err = row.Scan(&todo.ID, &todo.Username, &todo.Title, &todo.IsCompleted, &todo.CreatedAt)
+
+	return
 }

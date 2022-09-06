@@ -35,13 +35,28 @@ func TestGetUserTodos(t *testing.T) {
 	require.Contains(t, userTodos, todo)
 }
 
+func TestGetTodoById(t *testing.T) {
+	user := createRandomUser(t)
+	todo := createRandomTodo(t, user.Username)
+
+	todoFound, err := testStore.GetTodoById(todo.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, todoFound)
+
+	require.Equal(t, todo.ID, todoFound.ID)
+	require.Equal(t, todo.Username, todoFound.Username)
+	require.Equal(t, todo.Title, todoFound.Title)
+	require.Equal(t, todo.IsCompleted, todoFound.IsCompleted)
+	require.Equal(t, todo.CreatedAt, todoFound.CreatedAt)
+}
+
 func createRandomTodo(t *testing.T, username string) Todo {
 	todoID, err := uuid.NewRandom()
 	require.NoError(t, err)
 	require.NotEmpty(t, todoID)
 
 	arg := CreateTodoParams{
-		ID:       todoID.String(),
+		ID:       todoID,
 		Username: username,
 		Title:    util.RandomString(50),
 	}

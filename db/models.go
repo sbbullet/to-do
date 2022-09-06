@@ -1,6 +1,10 @@
 package db
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type User struct {
 	Username       string    `json:"username"`
@@ -11,7 +15,7 @@ type User struct {
 }
 
 type Todo struct {
-	ID          string    `json:"id"`
+	ID          uuid.UUID `json:"id"`
 	Username    string    `json:"username"`
 	Title       string    `json:"title"`
 	CreatedAt   time.Time `json:"created_at"`

@@ -67,6 +67,7 @@ func (server *Server) setupRouter() {
 	todoRoutes.Use(AuthMiddleware(server.tokenMaker))
 	todoRoutes.HandleFunc("", server.CreateTodo).Methods(http.MethodPost)
 	todoRoutes.HandleFunc("", server.GetUserTodos).Methods(http.MethodGet)
+	todoRoutes.HandleFunc("/{id}", server.UpdateTodo).Methods(http.MethodPatch)
 
 	server.router = r
 }

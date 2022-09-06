@@ -47,3 +47,17 @@ func RespondWithUauthorizedError(w http.ResponseWriter, errorMsg string) {
 		"error":   errorMsg,
 	})
 }
+
+func RespondWithNotFoundError(w http.ResponseWriter, errorMsg string) {
+	RespondWithJSON(w, http.StatusNotFound, map[string]interface{}{
+		"success": false,
+		"error":   errorMsg,
+	})
+}
+
+func RespondWithForbiddenError(w http.ResponseWriter, errorMsg string) {
+	RespondWithJSON(w, http.StatusForbidden, map[string]interface{}{
+		"success": false,
+		"error":   errorMsg,
+	})
+}
