@@ -10,7 +10,7 @@ type User struct {
 	CreatedAt      time.Time `json:"created_at"`
 }
 
-type Task struct {
+type Todo struct {
 	ID          string    `json:"id"`
 	Username    string    `json:"username"`
 	Title       string    `json:"title"`

@@ -11,7 +11,7 @@ func (store *Store) CreateUser(arg CreateUserParams) (user User, err error) {
 	const createUserQuery = `
 		INSERT INTO users(username, email, full_name, hashed_password)
 		VALUES(?, ?, ?, ?)
-		RETURNING *;
+		RETURNING username, email, full_name, hashed_password, created_at;
 	`
 
 	row := store.DB.QueryRow(createUserQuery,

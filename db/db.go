@@ -24,7 +24,7 @@ func NewDB(config *util.Config) *sql.DB {
 		hashed_password TEXT NOT NULL,
 		created_at DATETIME NOT NULL DEFAULT (datetime('now'))
 	);
-	CREATE TABLE IF NOT EXISTS tasks(
+	CREATE TABLE IF NOT EXISTS todos(
 		id TEXT PRIMARY KEY,
 		username TEXT NOT NULL,
 		title TEXT NOT NULL,

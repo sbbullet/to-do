@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"runtime/debug"
 	"strings"
@@ -103,6 +104,10 @@ func AuthMiddleware(tokenMaker token.Maker) func(http.Handler) http.Handler {
 			authToken := fields[1]
 			payload, err := tokenMaker.VerifyToken(authToken)
 			if err != nil {
+				if errors.Is(err, token.ErrTokenExpired) {
+					util.RespondWithUauthorizedError(w, "Your session has expired. Please, log in again to new session")
+					return
+				}
 				util.RespondWithUauthorizedError(w, "You are not authorized to perform the action")
 				return
 			}
