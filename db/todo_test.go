@@ -50,6 +50,23 @@ func TestGetTodoById(t *testing.T) {
 	require.Equal(t, todo.CreatedAt, todoFound.CreatedAt)
 }
 
+func TestDeleteTodoOfAUser(t *testing.T) {
+	user := createRandomUser(t)
+	todo := createRandomTodo(t, user.Username)
+
+	arg := DeleteTodoOfAUserParams{
+		ID:       todo.ID,
+		Username: user.Username,
+	}
+
+	err := testStore.DeleteTodoOfAUser(arg)
+	require.NoError(t, err)
+
+	todoFound, err := testStore.GetTodoById(todo.ID)
+	require.Error(t, err)
+	require.Empty(t, todoFound)
+}
+
 func createRandomTodo(t *testing.T, username string) Todo {
 	todoID, err := uuid.NewRandom()
 	require.NoError(t, err)

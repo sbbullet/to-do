@@ -68,6 +68,7 @@ func (server *Server) setupRouter() {
 	todoRoutes.HandleFunc("", server.CreateTodo).Methods(http.MethodPost)
 	todoRoutes.HandleFunc("", server.GetUserTodos).Methods(http.MethodGet)
 	todoRoutes.HandleFunc("/{id}", server.UpdateTodo).Methods(http.MethodPatch)
+	todoRoutes.HandleFunc("/{id}", server.DeleteTodo).Methods(http.MethodDelete)
 
 	server.router = r
 }

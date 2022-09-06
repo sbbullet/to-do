@@ -110,3 +110,31 @@ func (store *Store) UpdateTodo(arg UpdateTodoParams) (todo Todo, err error) {
 
 	return
 }
+
+type DeleteTodoOfAUserParams struct {
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+}
+
+func (store *Store) DeleteTodoOfAUser(arg DeleteTodoOfAUserParams) error {
+	const deleteTodoByIdQuery = `
+		DELETE FROM todos
+		WHERE id = ? AND username = ?;
+	`
+
+	result, err := store.DB.Exec(deleteTodoByIdQuery, arg.ID, arg.Username)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected < 1 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}

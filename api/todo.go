@@ -104,7 +104,7 @@ type updateTodoRequest struct {
 	IsCompleted *bool  `json:"is_completed" validation:"boolean"`
 }
 
-// Update todo of the authorized user
+// Update specified todo of the authorized user
 func (s *Server) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	var req updateTodoRequest
 
@@ -161,6 +161,35 @@ func (s *Server) UpdateTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.RespondWithOk(w, createTodoResponse(updatedTodo))
+}
+
+// Delete specified todo of the authorized user
+func (s *Server) DeleteTodo(w http.ResponseWriter, r *http.Request) {
+	todoId, err := uuid.Parse(mux.Vars(r)["id"])
+	if err != nil {
+		util.RespondWithBadRequest(w, "Invalid todo identifier")
+		return
+	}
+
+	username := r.Header.Get(authUsernameHeaderKey)
+	arg := db.DeleteTodoOfAUserParams{
+		ID:       todoId,
+		Username: username,
+	}
+
+	err = s.store.DeleteTodoOfAUser(arg)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			util.RespondWithNotFoundError(w, "Oops! We couldn't any of your todos with given identifier")
+			return
+		}
+
+		logger.Error(err.Error())
+		util.RespondWithInternalServerError(w)
+		return
+	}
+
+	util.RespondWithOk(w, "Successfully deleted specified todo from your todo list")
 }
 
 type todoResponse struct {
