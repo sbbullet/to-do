@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -56,8 +55,6 @@ func (store *Store) GetUserTodos(arg GetUserTodosParams) ([]Todo, error) {
 		LIMIT ?
 		OFFSET ?;
 	`
-
-	fmt.Println(arg)
 
 	rows, err := store.DB.Query(getUserTodosQuery, arg.Username, arg.Limit, arg.Offset)
 	if err != nil {
